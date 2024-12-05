@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvoiceInfoQueueMapper">
+
+
+    <sql id = "BaseSql">
+            tiiq.id,
+                tiiq.content,
+                tiiq.employee_id,
+                tiiq.tenant_id,
+            tiiq.creation_date,         tiiq.created_by,         tiiq.last_updated_by,         tiiq.last_update_date,         tiiq.object_version_number    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvoiceInfoQueue">
+        select
+        <include refid = "BaseSql"/>
+        from todo_invoice_info_queue tiiq
+        <where>
+            <if test="id !=null">
+                and tiiq.id = #{id,jdbcType = INTEGER}
+            </if>
+            <if test="content !=null">
+                and tiiq.content = #{content,jdbcType = OTHER}
+            </if>
+            <if test="employeeId !=null">
+                and tiiq.employee_id = #{employeeId,jdbcType = VARCHAR}
+            </if>
+            <if test="tenantId !=null">
+                and tiiq.tenant_id = #{tenantId,jdbcType = INTEGER}
+            </if>
+        </where>
+    </select>
+</mapper>
+

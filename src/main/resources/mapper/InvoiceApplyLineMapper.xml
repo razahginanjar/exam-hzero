@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvoiceApplyLineMapper">
+
+
+    <sql id = "BaseSql">
+            tial.apply_line_id,
+                tial.apply_header_id,
+                tial.attribute1,
+                tial.attribute2,
+                tial.attribute3,
+                tial.attribute4,
+                tial.attribute5,
+                tial.content_name,
+                tial.exclude_tax_amount,
+                tial.invoice_name,
+                tial.quantity,
+                tial.remark,
+                tial.tax_amount,
+                tial.tax_classification_number,
+                tial.tax_rate,
+                tial.tenant_id,
+                tial.total_amount,
+                tial.unit_price,
+            tial.creation_date,         tial.created_by,         tial.last_updated_by,         tial.last_update_date,         tial.object_version_number    </sql>
+
+    <select id = "selectList" resultType = "com.hand.demo.domain.entity.InvoiceApplyLine">
+        select
+        <include refid = "BaseSql"/>
+        from todo_invoice_apply_line tial
+        <where>
+            <if test="applyLineId !=null">
+                and tial.apply_line_id = #{applyLineId,jdbcType = INTEGER}
+            </if>
+            <if test="applyHeaderId !=null">
+                and tial.apply_header_id = #{applyHeaderId,jdbcType = INTEGER}
+            </if>
+            <if test="attribute1 !=null">
+                and tial.attribute1 = #{attribute1,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute2 !=null">
+                and tial.attribute2 = #{attribute2,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute3 !=null">
+                and tial.attribute3 = #{attribute3,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute4 !=null">
+                and tial.attribute4 = #{attribute4,jdbcType = VARCHAR}
+            </if>
+            <if test="attribute5 !=null">
+                and tial.attribute5 = #{attribute5,jdbcType = VARCHAR}
+            </if>
+            <if test="contentName !=null">
+                and tial.content_name = #{contentName,jdbcType = VARCHAR}
+            </if>
+            <if test="excludeTaxAmount !=null">
+                and tial.exclude_tax_amount = #{excludeTaxAmount,jdbcType = OTHER}
+            </if>
+            <if test="invoiceName !=null">
+                and tial.invoice_name = #{invoiceName,jdbcType = VARCHAR}
+            </if>
+            <if test="quantity !=null">
+                and tial.quantity = #{quantity,jdbcType = OTHER}
+            </if>
+            <if test="remark !=null">
+                and tial.remark = #{remark,jdbcType = OTHER}
+            </if>
+            <if test="taxAmount !=null">
+                and tial.tax_amount = #{taxAmount,jdbcType = OTHER}
+            </if>
+            <if test="taxClassificationNumber !=null">
+                and tial.tax_classification_number = #{taxClassificationNumber,jdbcType = VARCHAR}
+            </if>
+            <if test="taxRate !=null">
+                and tial.tax_rate = #{taxRate,jdbcType = OTHER}
+            </if>
+            <if test="tenantId !=null">
+                and tial.tenant_id = #{tenantId,jdbcType = INTEGER}
+            </if>
+            <if test="totalAmount !=null">
+                and tial.total_amount = #{totalAmount,jdbcType = OTHER}
+            </if>
+            <if test="unitPrice !=null">
+                and tial.unit_price = #{unitPrice,jdbcType = OTHER}
+            </if>
+        </where>
+    </select>
+</mapper>
+

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hand.demo.infra.mapper.InvoiceApplyHeaderMapper">
+
+    <sql id = "BaseSql">
+            tiah.apply_header_id,
+                tiah.apply_header_number,
+                tiah.apply_status,
+                tiah.attribute1,
+                tiah.attribute10,
+                tiah.attribute11,
+                tiah.attribute12,
+                tiah.attribute13,
+                tiah.attribute14,
+                tiah.attribute15,
+                tiah.attribute2,
+                tiah.attribute3,
+                tiah.attribute4,
+                tiah.attribute5,
+                tiah.attribute6,
+                tiah.attribute7,
+                tiah.attribute8,
+                tiah.attribute9,
+                tiah.bill_to_address,
+                tiah.bill_to_email,
+                tiah.bill_to_person,
+                tiah.bill_to_phone,
+                tiah.del_flag,
+                tiah.exclude_tax_amount,
+                tiah.invoice_color,
+                tiah.invoice_type,
+                tiah.remark,
+                tiah.submit_time,
+                tiah.tax_amount,
+                tiah.tenant_id,
+                tiah.total_amount,
+            tiah.creation_date,         tiah.created_by,         tiah.last_updated_by,         tiah.last_update_date,         tiah.object_version_number    </sql>
+
+    <select id = "selectList"
+            resultType = "com.hand.demo.domain.entity.InvoiceApplyHeader"
+    parameterType="com.hand.demo.domain.entity.InvoiceApplyHeader">
+        select
+        <include refid = "BaseSql"/>
+        from todo_invoice_apply_header tiah
+        <where>
+            <if test="applyHeaderId != null">
+                and tiah.apply_header_id = #{applyHeaderId,jdbcType=INTEGER}
+            </if>
+            <if test="applyHeaderNumber != null">
+                and tiah.apply_header_number like CONCAT('%', #{applyHeaderNumber,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="applyStatus != null">
+                and tiah.apply_status = #{applyStatus,jdbcType=VARCHAR}
+            </if>
+            <if test="attribute1 != null">
+                and tiah.attribute1 = #{attribute1,jdbcType=VARCHAR}
+            </if>
+            <!-- Other attribute checks follow the same pattern -->
+            <if test="billToAddress != null">
+                and tiah.bill_to_address like CONCAT('%', #{billToAddress,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="billToEmail != null">
+                and tiah.bill_to_email like CONCAT('%', #{billToEmail,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="billToPerson != null">
+                and tiah.bill_to_person like CONCAT('%', #{billToPerson,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="billToPhone != null">
+                and tiah.bill_to_phone like CONCAT('%', #{billToPhone,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="delFlag != null">
+                and tiah.del_flag = #{delFlag,jdbcType=INTEGER}
+            </if>
+            <if test="excludeTaxAmount != null">
+                and tiah.exclude_tax_amount = #{excludeTaxAmount,jdbcType=DECIMAL}
+            </if>
+            <if test="invoiceColor != null">
+                and tiah.invoice_color = #{invoiceColor,jdbcType=VARCHAR}
+            </if>
+            <if test="invoiceType != null">
+                and tiah.invoice_type = #{invoiceType,jdbcType=VARCHAR}
+            </if>
+            <if test="remark != null">
+                and tiah.remark = #{remark,jdbcType=LONGVARCHAR}
+            </if>
+            <if test="submitTime != null">
+                and tiah.submit_time = #{submitTime,jdbcType=TIMESTAMP}
+            </if>
+            <if test="taxAmount != null">
+                and tiah.tax_amount = #{taxAmount,jdbcType=DECIMAL}
+            </if>
+            <if test="tenantId != null">
+                and tiah.tenant_id = #{tenantId,jdbcType=INTEGER}
+            </if>
+            <if test="totalAmount != null">
+                and tiah.total_amount = #{totalAmount,jdbcType=DECIMAL}
+            </if>
+        </where>
+    </select>
+</mapper>
+
