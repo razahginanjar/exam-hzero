@@ -18,15 +18,13 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.hzero.boot.platform.lov.annotation.LovValue;
-import org.hzero.common.HZeroCacheKey;
 import org.hzero.core.cache.CacheValue;
 import org.hzero.core.cache.Cacheable;
+import org.hzero.export.annotation.ExcelColumn;
 
 /**
  * Invoice Apply Header Table(InvoiceApplyHeader)实体类
@@ -41,6 +39,7 @@ import org.hzero.core.cache.Cacheable;
 @VersionAudit
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
+//@ExcelSheet(en = "Invoice Header Information")
 @Table(name = "todo_invoice_apply_header")
 public class InvoiceApplyHeader extends AuditDomain implements Cacheable, Serializable {
     private static final long serialVersionUID = -45223201537570491L;
@@ -80,15 +79,18 @@ public class InvoiceApplyHeader extends AuditDomain implements Cacheable, Serial
     @ApiModelProperty("Primary Key")
     @Id
     @GeneratedValue
+    @ExcelColumn(en = "Apply Header Id")
     private Long applyHeaderId;
 
     @ApiModelProperty(value = "Header Number", required = true)
     @NotBlank
+    @ExcelColumn(en = "Apply Header Number", order = 2)
     private String applyHeaderNumber;
 
     @ApiModelProperty(value = "(Value Set)         D : Draft         S : Success         F : Fail         C : Canceled", required = true)
     @NotBlank
     @LovValue(lovCode = Constants.LOV_CODE_STATUS)
+    @ExcelColumn(en = "Apply Status", lovCode = Constants.LOV_CODE_STATUS, order = 3)
     private String applyStatus;
 
     @ApiModelProperty(value = "")
@@ -137,48 +139,61 @@ public class InvoiceApplyHeader extends AuditDomain implements Cacheable, Serial
     private String attribute9;
 
     @ApiModelProperty(value = "Bill Recipient Address")
+    @ExcelColumn(en = "Bill To Address", order = 4)
     private String billToAddress;
 
     @ApiModelProperty(value = "Bill Recipient Email")
+    @ExcelColumn(en = "Bill To Email", order = 5)
     private String billToEmail;
 
     @ApiModelProperty(value = "Bill Recipient Name")
+    @ExcelColumn(en = "Bill To Person", order = 6)
     private String billToPerson;
 
     @ApiModelProperty(value = "Bill Recipient Phone")
+    @ExcelColumn(en = "Bill To Phone", order = 7)
     private String billToPhone;
 
     @ApiModelProperty(value = "1: Deleted, 0: Normal")
+    @ExcelColumn(en = "Delete Flag", order = 8)
     private Integer delFlag;
 
     @ApiModelProperty(value = "Sum of line exclude tax amounts", required = true)
     @NotNull
+    @ExcelColumn(en = "Exclude Tax Amount", order = 9)
     private BigDecimal excludeTaxAmount;
 
     @ApiModelProperty(value = "(Value Set)         R : Red invoice         B : Blue invoice")
     @LovValue(lovCode = Constants.LOV_CODE_COLOR)
+    @ExcelColumn(en = "Invoice Color", lovCode = Constants.LOV_CODE_COLOR, order = 10)
     private String invoiceColor;
 
     @ApiModelProperty(value = "(Value Set)         P : Paper invoice         E : E-invoice")
     @LovValue(lovCode = Constants.LOV_CODE_TYPE)
+    @ExcelColumn(en = "Invoice Type", lovCode = Constants.LOV_CODE_TYPE, order = 11)
     private String invoiceType;
 
     @ApiModelProperty(value = "Additional Notes")
+    @ExcelColumn(en = "Remark", order = 12)
     private String remark;
 
     @ApiModelProperty(value = "Submission Time")
+    @ExcelColumn(en = "Submit Time", order = 13)
     private Date submitTime;
 
     @ApiModelProperty(value = "Sum of line tax amounts", required = true)
     @NotNull
+    @ExcelColumn(en = "Tax Amount", order = 14)
     private BigDecimal taxAmount;
 
     @ApiModelProperty(value = "Tenant Identifier", required = true)
     @NotNull
+    @ExcelColumn(en = "Tenant Id", order = 15)
     private Long tenantId;
 
     @ApiModelProperty(value = "Sum of line total amounts", required = true)
     @NotNull
+    @ExcelColumn(en = "Total Amount", order = 16)
     private BigDecimal totalAmount;
 
     @Transient
@@ -189,7 +204,5 @@ public class InvoiceApplyHeader extends AuditDomain implements Cacheable, Serial
             structure = CacheValue.DataStructure.MAP_OBJECT)
     private String idDetail;
 
-    @Transient
-    private List<InvoiceApplyLine> invoiceApplyLines;
 }
 

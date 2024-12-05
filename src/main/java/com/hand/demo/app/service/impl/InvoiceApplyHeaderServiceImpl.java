@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.api.dto.InvApplyHeaderDTO;
 import com.hand.demo.app.service.InvoiceApplyLineService;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
-import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import com.hand.demo.infra.constant.Constants;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.domain.PageInfo;
@@ -19,19 +18,15 @@ import org.hzero.boot.platform.lov.dto.LovValueDTO;
 import org.hzero.core.cache.ProcessCacheValue;
 import org.hzero.core.redis.RedisHelper;
 import org.modelmapper.ModelMapper;
-import org.opensaml.ws.wstrust.impl.CodeBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -61,13 +56,13 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     @Autowired
     private InvoiceApplyLineService invoiceApplyLineService;
 
-    private static final String CACHE_KEY_PREFIX = "hexam-47837:invoice-header";
 
     @Override
     public Page<InvApplyHeaderDTO> selectList(PageRequest pageRequest,
                                               InvoiceApplyHeader invoiceApplyHeader) {
         PageHelper.startPage(pageRequest.getPage(), pageRequest.getSize());
-        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderRepository.selectList(invoiceApplyHeader);
+        List<InvoiceApplyHeader> invoiceApplyHeaders =
+                invoiceApplyHeaderRepository.selectList(invoiceApplyHeader);
 
         List<InvApplyHeaderDTO> dtoList = invoiceApplyHeaders.stream()
                 .map(this::mapToDTO)
@@ -77,7 +72,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     }
 
     @Override
-    public void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders) {
+    public void saveData(List<InvApplyHeaderDTO> invoiceApplyHeaders) {
         validateLovData(invoiceApplyHeaders);
 
         List<InvoiceApplyHeader> insertList = invoiceApplyHeaders.stream()
@@ -133,6 +128,54 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         return invoiceApplyHeaderRepository.selectOne(invoiceApplyHeader);
     }
 
+    @Override
+    public List<InvApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader) {
+        // Fetch LOV mappings for tenant
+        Map<String, Map<String, String>> stringMapMap =
+                fetchLovMaps(invoiceApplyHeader.getTenantId());
+
+        // Fetch headers based on the filter criteria
+        List<InvoiceApplyHeader> invoiceApplyHeaders =
+                invoiceApplyHeaderRepository.selectList(invoiceApplyHeader);
+
+        // Collect IDs of headers for fetching lines
+        List<Long> headerIds = new ArrayList<>();
+        for (InvoiceApplyHeader applyHeader : invoiceApplyHeaders) {
+            headerIds.add(applyHeader.getApplyHeaderId());
+        }
+
+        // Fetch lines for all headers in a single batch call (if supported, else loop as in original code)
+        Map<Long, List<InvoiceApplyLine>> lineMap = headerIds.stream()
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> {
+                            InvoiceApplyLine query = new InvoiceApplyLine();
+                            query.setApplyHeaderId(id);
+                            return invoiceApplyLineService.selectList(query);
+                        }
+                ));
+
+        // Transform headers into DTOs
+        ModelMapper modelMapper = new ModelMapper();
+        return invoiceApplyHeaders.stream()
+                .map(header -> {
+                    // Map header to DTO
+                    InvApplyHeaderDTO dto = modelMapper.map(header, InvApplyHeaderDTO.class);
+
+                    // Set LOV meanings
+                    dto.setInvoiceColorMeaning(stringMapMap.getOrDefault(Constants.LOV_CODE_COLOR, Collections.emptyMap())
+                            .get(dto.getInvoiceColor()));
+                    dto.setApplyStatusMeaning(stringMapMap.getOrDefault(Constants.LOV_CODE_STATUS, Collections.emptyMap())
+                            .get(dto.getApplyStatus()));
+                    dto.setInvoiceTypeMeaning(stringMapMap.getOrDefault(Constants.LOV_CODE_TYPE, Collections.emptyMap())
+                            .get(dto.getInvoiceType()));
+
+                    // Set lines
+                    dto.setInvoiceApplyLines(lineMap.get(header.getApplyHeaderId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
 
 
     private Map<String, Map<String, String>> fetchLovMaps(Long tenantId) {
@@ -159,15 +202,15 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     private void cacheHeaderDetails(Long invHeaderId, InvApplyHeaderDTO dto) {
         try {
             String json = objectMapper.writeValueAsString(dto);
-            redisHelper.hshPut(CACHE_KEY_PREFIX, String.valueOf(invHeaderId), json);
-            redisHelper.setExpire(CACHE_KEY_PREFIX + "::" + invHeaderId, 30, TimeUnit.MINUTES);
+            redisHelper.hshPut(Constants.CACHE_KEY_PREFIX, String.valueOf(invHeaderId), json);
+            redisHelper.setExpire(Constants.CACHE_KEY_PREFIX + "::" + invHeaderId, 30, TimeUnit.MINUTES);
         } catch (Exception e) {
             log.error("Failed to cache header details for ID {}: {}", invHeaderId, e.getMessage(), e);
         }
     }
 
 
-    private void validateLovData(List<InvoiceApplyHeader> headers) {
+    private void validateLovData(List<InvApplyHeaderDTO> headers) {
         headers.forEach(this::validateLovDataForHeader);
     }
 
@@ -183,7 +226,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     }
 
 
-    private void processInvoiceLines(List<InvoiceApplyHeader> headers) {
+    private void processInvoiceLines(List<InvApplyHeaderDTO> headers) {
         headers.forEach(header -> {
             if (!CollectionUtils.isEmpty(header.getInvoiceApplyLines())) {
                 header.getInvoiceApplyLines().forEach(line -> {

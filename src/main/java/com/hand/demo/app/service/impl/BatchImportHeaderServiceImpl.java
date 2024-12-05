@@ -1,11 +1,13 @@
 package com.hand.demo.app.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hand.demo.api.dto.InvApplyHeaderDTO;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import com.hand.demo.infra.constant.Constants;
 import io.choerodon.core.exception.CommonException;
+import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.hzero.boot.imported.app.service.BatchImportHandler;
 import org.hzero.boot.imported.infra.validator.annotation.ImportService;
@@ -38,17 +40,20 @@ public class BatchImportHeaderServiceImpl extends BatchImportHandler {
         }
 
         Map<String, Object> args = getArgs(); // Assuming this is needed for external logic
-        List<InvoiceApplyHeader> listHeaders = new ArrayList<>();
+        List<InvApplyHeaderDTO> listHeaders = new ArrayList<>();
+        log.info("the tenant is : {}", DetailsHelper.getUserDetails().getTenantId());
 
         for (String datum : data) {
             try {
                 // Parse each JSON string into an InvoiceApplyHeader object
-                InvoiceApplyHeader invoiceApplyHeader = objectMapper.readValue(datum, InvoiceApplyHeader.class);
+                InvApplyHeaderDTO invoiceApplyHeader
+                        = objectMapper.readValue(datum, InvApplyHeaderDTO.class);
 
                 if (invoiceApplyHeader.getApplyHeaderNumber() != null) {
                     // Check if the header already exists
                     InvoiceApplyHeader queryHeader = new InvoiceApplyHeader();
-                    queryHeader.setApplyHeaderNumber(invoiceApplyHeader.getApplyHeaderNumber());
+                    queryHeader
+                            .setApplyHeaderNumber(invoiceApplyHeader.getApplyHeaderNumber());
                     InvoiceApplyHeader existingHeader = invoiceApplyHeaderRepository.selectOne(queryHeader);
 
                     if (existingHeader == null) {

@@ -121,30 +121,6 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
 
     @Override
     public void removeData(List<InvoiceApplyLine> invoiceApplyLines) {
-//        for (InvoiceApplyLine invoiceApplyLine : invoiceApplyLines) {
-//            InvoiceApplyLine invoiceApplyLine1
-//                    = invoiceApplyLineRepository.selectOne(invoiceApplyLine);
-//            if(Objects.isNull(invoiceApplyLine1))
-//            {
-//                throw new CommonException(Constants.MESSAGE_ERROR_INV_LINE_NOT_FOUND);
-//            }
-//            InvoiceApplyHeader invoiceApplyHeader =
-//                    invoiceApplyHeaderRepository.selectByPrimary(invoiceApplyLine1.getApplyHeaderId());
-//            BigDecimal excludeTaxAmount = invoiceApplyHeader.getExcludeTaxAmount();
-//            BigDecimal totalAmount = invoiceApplyHeader.getTotalAmount();
-//            BigDecimal taxAmount = invoiceApplyHeader.getTaxAmount();
-//
-//            taxAmount = taxAmount.subtract(invoiceApplyLine1.getTaxAmount());
-//            totalAmount = totalAmount.subtract(invoiceApplyLine1.getTotalAmount());
-//            excludeTaxAmount = excludeTaxAmount.subtract(invoiceApplyLine1.getExcludeTaxAmount());
-//
-//
-//            invoiceApplyHeader.setTotalAmount(totalAmount);
-//            invoiceApplyHeader.setTaxAmount(taxAmount);
-//            invoiceApplyHeader.setExcludeTaxAmount(excludeTaxAmount);
-//            invoiceApplyHeaderRepository.updateByPrimaryKeySelective(invoiceApplyHeader);
-//            invoiceApplyLineRepository.delete(invoiceApplyLine1);
-//        }
         Map<Long, InvoiceApplyHeader> headerCache = new HashMap<>();
 
         for (InvoiceApplyLine line : invoiceApplyLines) {
@@ -174,6 +150,16 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
         InvoiceApplyLine invoiceApplyLine = new InvoiceApplyLine();
         invoiceApplyLine.setApplyLineId(headerId);
         return invoiceApplyLineRepository.selectList(invoiceApplyLine);
+    }
+
+    @Override
+    public List<InvoiceApplyLine> selectList(InvoiceApplyLine invoiceApplyLine) {
+        return invoiceApplyLineRepository.selectList(invoiceApplyLine);
+    }
+
+    @Override
+    public List<InvoiceApplyLine> selectAll() {
+        return invoiceApplyLineRepository.selectAll();
     }
 }
 

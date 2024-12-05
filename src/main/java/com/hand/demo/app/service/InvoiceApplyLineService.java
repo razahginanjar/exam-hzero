@@ -31,6 +31,8 @@ public interface InvoiceApplyLineService {
     void saveData(List<InvoiceApplyLine> invoiceApplyLines);
     void removeData(List<InvoiceApplyLine> invoiceApplyLines);
     List<InvoiceApplyLine> selectByInvoiceHeader(Long headerId);
+    List<InvoiceApplyLine> selectList(InvoiceApplyLine invoiceApplyLine);
+    List<InvoiceApplyLine> selectAll();
 
 }
 

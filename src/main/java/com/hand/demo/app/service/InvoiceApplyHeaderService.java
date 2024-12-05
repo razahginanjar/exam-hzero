@@ -29,11 +29,12 @@ public interface InvoiceApplyHeaderService {
      *
      * @param invoiceApplyHeaders 数据
      */
-    void saveData(List<InvoiceApplyHeader> invoiceApplyHeaders);
+    void saveData(List<InvApplyHeaderDTO> invoiceApplyHeaders);
 
     void delete(List<InvoiceApplyHeader> invoiceApplyHeaders);
     InvoiceApplyHeader selectOne(Long id);
     InvApplyHeaderDTO selectDetail(Long invHeaderId, Long tenantId);
     InvoiceApplyHeader selectDetailSelective(InvoiceApplyHeader invoiceApplyHeader);
+    List<InvApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader);
 }
 

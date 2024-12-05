@@ -14,6 +14,8 @@ import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
+import org.hzero.export.annotation.ExcelExport;
+import org.hzero.export.vo.ExportParam;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -72,9 +74,9 @@ public class InvoiceApplyHeaderController extends BaseController {
     @ApiOperation(value = "创建或更新Invoice Apply Header Table")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvoiceApplyHeader>> save(
+    public ResponseEntity<List<InvApplyHeaderDTO>> save(
             @PathVariable Long organizationId,
-            @RequestBody List<InvoiceApplyHeader> invoiceApplyHeaders) {
+            @RequestBody List<InvApplyHeaderDTO> invoiceApplyHeaders) {
         validObject(invoiceApplyHeaders);
         SecurityTokenHelper.validTokenIgnoreInsert(invoiceApplyHeaders);
         invoiceApplyHeaders.forEach(item -> item.setTenantId(organizationId));
@@ -96,22 +98,22 @@ public class InvoiceApplyHeaderController extends BaseController {
     }
 
 
-    @Permission(level = ResourceLevel.SITE)
+    @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation(value = "分页查询用户")
-    @ProcessLovValue(
-            targetField = BaseConstants.FIELD_BODY
-    )
     @GetMapping(
             path = "/export"
     )
-    @Ex
+    @ExcelExport(value = InvApplyHeaderDTO.class)
+    @ProcessLovValue(
+            targetField = BaseConstants.FIELD_BODY
+    )
     public ResponseEntity<List<InvApplyHeaderDTO>> export(
-            InvoiceApplyHeader userDTO,
+            InvoiceApplyHeader invoiceApplyHeader,
             ExportParam param,
             HttpServletResponse response,
             @PathVariable Long organizationId) {
 
-        return Results.success(invoiceApplyHeaderService.exportData(userDTO));
+        return Results.success(invoiceApplyHeaderService.exportData(invoiceApplyHeader));
     }
 }
 
