@@ -84,7 +84,6 @@ public class InvoiceApplyLineController extends BaseController {
             @PathVariable Long organizationId) {
         SecurityTokenHelper.validToken(invoiceApplyLines);
         invoiceApplyLines.forEach(item -> item.setTenantId(organizationId));
-        //invoiceApplyLineRepository.batchDeleteByPrimaryKey(invoiceApplyLines);
         invoiceApplyLineService.removeData(invoiceApplyLines);
         return Results.success();
     }

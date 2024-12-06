@@ -35,7 +35,7 @@ public class BatchImportLineServiceImpl extends BatchImportHandler {
     @Override
     public Boolean doImport(List<String> data) {
         if (data == null || data.isEmpty()) {
-            log.warn("Input data is null or empty");
+            log.warn(Constants.MESSAGE_ERROR_DATA_NULL);
             return false;
         }
         Map<String, Object> args = getArgs(); // Assuming this is needed somewhere else

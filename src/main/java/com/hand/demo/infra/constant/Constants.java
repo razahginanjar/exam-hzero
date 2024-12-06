@@ -23,6 +23,7 @@ public class Constants {
     public static final String CACHE_KEY_PREFIX_DELETE_HEADER = "hexam-47837:invoice-header:deleted";
     public static final String CACHE_KEY_PREFIX = "hexam-47837:invoice-header";
     public static final String PRODUCER_KEY_HEADER = "invoiceInfo_47837";
+    public static final String MESSAGE_ERROR_DATA_NULL = "Data cannot be null or empty";
     private Constants() {}
 
 }

@@ -51,7 +51,7 @@ public class InvoiceInfoQueueController extends BaseController {
     @ApiOperation(value = "Redis Message Queue Table明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{id}/detail")
-    public ResponseEntity<InvoiceInfoQueue> detail(@PathVariable Long id) {
+    public ResponseEntity<InvoiceInfoQueue> detail(@PathVariable Long id, @PathVariable String organizationId) {
         InvoiceInfoQueue invoiceInfoQueue = invoiceInfoQueueRepository.selectByPrimary(id);
         return Results.success(invoiceInfoQueue);
     }

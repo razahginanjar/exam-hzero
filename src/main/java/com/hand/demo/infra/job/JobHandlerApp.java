@@ -6,11 +6,14 @@ import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import com.hand.demo.infra.constant.Constants;
 import io.choerodon.core.exception.CommonException;
+import io.choerodon.core.oauth.CustomUserDetails;
+import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.hzero.boot.scheduler.infra.annotation.JobHandler;
 import org.hzero.boot.scheduler.infra.enums.ReturnT;
 import org.hzero.boot.scheduler.infra.handler.IJobHandler;
 import org.hzero.boot.scheduler.infra.tool.SchedulerTool;
+import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -34,33 +37,54 @@ public class JobHandlerApp implements IJobHandler{
     @Override
     public ReturnT execute(Map<String, String> map,
                            SchedulerTool tool) {
+        try {
+            // Validate and extract parameters
+            Long tenantId = Long.valueOf(map.get("tenantId"));
+            String employeeId = map.get("employeeId");
 
-        InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
-        invoiceApplyHeader.setTenantId(Long.valueOf(map.get("tenantId")));
-        invoiceApplyHeader.setDelFlag(1);
-        invoiceApplyHeader.setInvoiceColor("R");
-        invoiceApplyHeader.setApplyStatus("F");
-        invoiceApplyHeader.setInvoiceType("E");
-        List<InvoiceApplyHeader> invoiceApplyHeaders
-                = invoiceApplyHeaderRepository.selectList(invoiceApplyHeader);
-        List<String> messages = new ArrayList<>();
+            if (tenantId == null || employeeId == null) {
+                log.error("Missing required parameters: tenantId or employeeId");
+                return ReturnT.FAILURE;
+            }
 
-        if(invoiceApplyHeaders == null || invoiceApplyHeaders.isEmpty()){
+            // Query database for invoice headers
+            InvoiceApplyHeader query = new InvoiceApplyHeader();
+            query.setTenantId(tenantId);
+            query.setDelFlag(1);
+            query.setInvoiceColor("R");
+            query.setApplyStatus("F");
+            query.setInvoiceType("E");
+
+            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderRepository.selectList(query);
+
+            // Exit if no data
+            if (invoiceApplyHeaders == null || invoiceApplyHeaders.isEmpty()) {
+                log.info("No matching invoice headers found.");
+                return ReturnT.SUCCESS;
+            }
+
+            // Build and push messages to Redis queue
+            List<String> messages = new ArrayList<>();
+            for (InvoiceApplyHeader invoice : invoiceApplyHeaders) {
+                Map<String, Object> mapper = objectMapper.convertValue(invoice, Map.class);
+                mapper.put("userDetails", objectMapper.writeValueAsString(DetailsHelper.getUserDetails()));
+                mapper.put("employeeId", employeeId);
+                messages.add(objectMapper.writeValueAsString(mapper));
+            }
+
+            redisQueueHelper.pushAll(Constants.PRODUCER_KEY_HEADER, messages);
+            log.info("Processed {} invoice headers successfully.", invoiceApplyHeaders.size());
             return ReturnT.SUCCESS;
-        }
-        invoiceApplyHeaders.forEach(
-               invoiceApplyHeader1 ->
-               {
-                   try {
-                       String s = objectMapper.writeValueAsString(invoiceApplyHeader1);
-                       messages.add(s);
-                   } catch (JsonProcessingException e) {
-                       throw new CommonException(e);
-                   }
-               }
-        );
 
-        redisQueueHelper.pushAll(Constants.PRODUCER_KEY_HEADER,messages);
-        return ReturnT.SUCCESS;
+        } catch (NumberFormatException e) {
+            log.error("Invalid number format: {}", e.getMessage(), e);
+            return ReturnT.FAILURE;
+        } catch (JsonProcessingException e) {
+            log.error("JSON processing error: {}", e.getMessage(), e);
+            throw new CommonException("Failed to process JSON", e);
+        } catch (Exception e) {
+            log.error("Unexpected error: {}", e.getMessage(), e);
+            throw new CommonException("Unexpected error occurred", e);
+        }
     }
 }
