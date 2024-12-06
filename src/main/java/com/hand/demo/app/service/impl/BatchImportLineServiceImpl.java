@@ -38,7 +38,6 @@ public class BatchImportLineServiceImpl extends BatchImportHandler {
             log.warn(Constants.MESSAGE_ERROR_DATA_NULL);
             return false;
         }
-        Map<String, Object> args = getArgs(); // Assuming this is needed somewhere else
 
         List<InvoiceApplyLine> lineList = new ArrayList<>();
         for (String datum : data) {

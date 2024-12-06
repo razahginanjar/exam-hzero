@@ -39,7 +39,6 @@ public class BatchImportHeaderServiceImpl extends BatchImportHandler {
             return false;
         }
 
-        Map<String, Object> args = getArgs(); // Assuming this is needed for external logic
         List<InvApplyHeaderDTO> listHeaders = new ArrayList<>();
 
         for (String datum : data) {

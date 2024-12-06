@@ -40,7 +40,7 @@ public class MessageListener implements IBatchQueueHandler {
                     objectMapper.readValue(map1.get("userDetails").toString(), CustomUserDetails.class);
             DetailsHelper.setCustomUserDetails(customUserDetails);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error(e.getMessage());
             throw new CommonException(e.getMessage());
         }
         for (String message : messages) {
@@ -58,6 +58,5 @@ public class MessageListener implements IBatchQueueHandler {
             list.add(invoiceInfoQueue);
         }
         invoiceInfoQueueService.saveData(list);
-
     }
 }

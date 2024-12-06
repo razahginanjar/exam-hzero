@@ -43,7 +43,7 @@ public class JobHandlerApp implements IJobHandler{
             String employeeId = map.get("employeeId");
 
             if (tenantId == null || employeeId == null) {
-                log.error("Missing required parameters: tenantId or employeeId");
+                log.error(Constants.MESSAGE_ERROR_MISSING_TENANT_OR_EMPLOYEE);
                 return ReturnT.FAILURE;
             }
 

@@ -148,7 +148,7 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     @Override
     public List<InvoiceApplyLine> selectByInvoiceHeader(Long headerId) {
         InvoiceApplyLine invoiceApplyLine = new InvoiceApplyLine();
-        invoiceApplyLine.setApplyLineId(headerId);
+        invoiceApplyLine.setApplyHeaderId(headerId);
         return invoiceApplyLineRepository.selectList(invoiceApplyLine);
     }
 

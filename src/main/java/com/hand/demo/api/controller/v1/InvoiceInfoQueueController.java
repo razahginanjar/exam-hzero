@@ -70,7 +70,8 @@ public class InvoiceInfoQueueController extends BaseController {
     @ApiOperation(value = "删除Redis Message Queue Table")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvoiceInfoQueue> invoiceInfoQueues) {
+    public ResponseEntity<?> remove(@RequestBody List<InvoiceInfoQueue> invoiceInfoQueues,
+                                    @PathVariable Long organizationId) {
         SecurityTokenHelper.validToken(invoiceInfoQueues);
         invoiceInfoQueueRepository.batchDeleteByPrimaryKey(invoiceInfoQueues);
         return Results.success();

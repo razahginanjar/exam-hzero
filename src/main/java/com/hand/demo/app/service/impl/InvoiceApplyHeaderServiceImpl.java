@@ -20,10 +20,12 @@ import org.hzero.core.redis.RedisHelper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -119,6 +121,9 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
             throw new CommonException(Constants.MESSAGE_ERROR_NOT_FOUND, invHeaderId);
         }
         InvApplyHeaderDTO dto = new ModelMapper().map(header, InvApplyHeaderDTO.class);
+        List<InvoiceApplyLine> invoiceApplyLines =
+                invoiceApplyLineService.selectByInvoiceHeader(invHeaderId);
+        dto.setInvoiceApplyLines(invoiceApplyLines);
         cacheHeaderDetails(invHeaderId, dto);
         return dto;
     }
@@ -195,15 +200,18 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
 
 
     private InvApplyHeaderDTO mapToDTO(InvoiceApplyHeader header) {
-        return new ModelMapper().map(header, InvApplyHeaderDTO.class);
+        InvApplyHeaderDTO map = new ModelMapper().map(header, InvApplyHeaderDTO.class);
+        List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineService.selectByInvoiceHeader(header.getApplyHeaderId());
+        map.setInvoiceApplyLines(invoiceApplyLines);
+        return map;
     }
 
 
     private void cacheHeaderDetails(Long invHeaderId, InvApplyHeaderDTO dto) {
         try {
             String json = objectMapper.writeValueAsString(dto);
-            redisHelper.hshPut(Constants.CACHE_KEY_PREFIX, String.valueOf(invHeaderId), json);
-            redisHelper.setExpire(Constants.CACHE_KEY_PREFIX + "::" + invHeaderId, 30, TimeUnit.MINUTES);
+            redisHelper.strSet(Constants.CACHE_KEY_PREFIX+":"+invHeaderId,
+                    json, 2, TimeUnit.HOURS);
         } catch (Exception e) {
             log.error("Failed to cache header details for ID {}: {}", invHeaderId, e.getMessage(), e);
         }
@@ -251,6 +259,45 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     private void processUpdateHeaders(List<InvoiceApplyHeader> headers) {
         if (headers.isEmpty()) return;
 
+        // Fetch all InvoiceApplyLines
+        List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineService.selectAll();
+        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderRepository.selectAll();
+        // Create a map to group InvoiceApplyLines by ApplyHeaderId
+        Map<Long, List<InvoiceApplyLine>> mapping = new HashMap<>();
+        Map<Long, InvoiceApplyHeader> mapHeader = new HashMap<>();
+
+        // Group InvoiceApplyLines by ApplyHeaderId
+        for (InvoiceApplyLine invoiceApplyLine : invoiceApplyLines) {
+            mapping.computeIfAbsent(invoiceApplyLine.getApplyHeaderId(), k -> new ArrayList<>()).add(invoiceApplyLine);
+        }
+
+        for (InvoiceApplyHeader invoiceApplyHeader : invoiceApplyHeaders) {
+            mapHeader.put(invoiceApplyHeader.getApplyHeaderId(), invoiceApplyHeader);
+        }
+        // Process each header
+        for (InvoiceApplyHeader header : headers) {
+            List<InvoiceApplyLine> invoiceApplyLines1 = mapping.get(header.getApplyHeaderId());
+            if (invoiceApplyLines1 == null) continue;  // Skip if no lines exist for this header
+
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            BigDecimal excludeTaxAmount = BigDecimal.ZERO;
+            BigDecimal taxAmount = BigDecimal.ZERO;
+
+            // Accumulate total amounts, exclude tax amounts, and tax amounts
+            for (InvoiceApplyLine line : invoiceApplyLines1) {
+                totalAmount = totalAmount.add(line.getTotalAmount());
+                excludeTaxAmount = excludeTaxAmount.add(line.getExcludeTaxAmount());  // Assuming there's an excludeTaxAmount field
+                taxAmount = taxAmount.add(line.getTaxAmount());
+            }
+
+            // Set the calculated amounts to the header
+            header.setTotalAmount(totalAmount);
+            header.setExcludeTaxAmount(excludeTaxAmount);  // Set the exclude tax amount directly
+            header.setTaxAmount(taxAmount);
+            header.setApplyHeaderNumber(mapHeader.get(header.getApplyHeaderId()).getApplyHeaderNumber());
+        }
+
+        // Perform the batch update
         invoiceApplyHeaderRepository.batchUpdateByPrimaryKeySelective(headers);
     }
 

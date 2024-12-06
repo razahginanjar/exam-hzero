@@ -9,9 +9,9 @@ import io.choerodon.resource.annoation.EnableChoerodonResourceServer;
 @EnableChoerodonResourceServer
 @EnableDiscoveryClient
 @SpringBootApplication
-@MapperScan({"com.hand.demo.infra.mapper", "org.hzero.boot.admin.translate.mapper",
-        "org.hzero.boot.imported.infra.mapper"})
-//@MapperScan({"com.hand.demo.infra.mapper"})
+//@MapperScan({"com.hand.demo.infra.mapper", "org.hzero.boot.admin.translate.mapper",
+//        "org.hzero.boot.imported.infra.mapper"})
+@MapperScan({"com.hand.demo.infra.mapper"})
 public class DemoApplication {
 
     public static void main(String[] args) {
