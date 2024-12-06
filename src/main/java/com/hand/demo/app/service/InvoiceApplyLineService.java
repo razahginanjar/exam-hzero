@@ -34,5 +34,6 @@ public interface InvoiceApplyLineService {
     List<InvoiceApplyLine> selectList(InvoiceApplyLine invoiceApplyLine);
     List<InvoiceApplyLine> selectAll();
 
+    List<InvoiceApplyLine> exportData(InvoiceApplyLine invoiceApplyLine);
 }
 

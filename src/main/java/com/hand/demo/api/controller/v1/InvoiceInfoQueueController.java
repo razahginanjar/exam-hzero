@@ -51,7 +51,8 @@ public class InvoiceInfoQueueController extends BaseController {
     @ApiOperation(value = "Redis Message Queue Table明细")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping("/{id}/detail")
-    public ResponseEntity<InvoiceInfoQueue> detail(@PathVariable Long id, @PathVariable String organizationId) {
+    public ResponseEntity<InvoiceInfoQueue> detail(@PathVariable Long id,
+                                                   @PathVariable Long organizationId) {
         InvoiceInfoQueue invoiceInfoQueue = invoiceInfoQueueRepository.selectByPrimary(id);
         return Results.success(invoiceInfoQueue);
     }
@@ -59,7 +60,8 @@ public class InvoiceInfoQueueController extends BaseController {
     @ApiOperation(value = "创建或更新Redis Message Queue Table")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @PostMapping
-    public ResponseEntity<List<InvoiceInfoQueue>> save(@PathVariable Long organizationId, @RequestBody List<InvoiceInfoQueue> invoiceInfoQueues) {
+    public ResponseEntity<List<InvoiceInfoQueue>> save(@PathVariable Long organizationId,
+                                                       @RequestBody List<InvoiceInfoQueue> invoiceInfoQueues) {
         validObject(invoiceInfoQueues);
         SecurityTokenHelper.validTokenIgnoreInsert(invoiceInfoQueues);
         invoiceInfoQueues.forEach(item -> item.setTenantId(organizationId));

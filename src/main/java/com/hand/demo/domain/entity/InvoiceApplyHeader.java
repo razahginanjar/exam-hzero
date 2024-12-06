@@ -39,7 +39,6 @@ import org.hzero.export.annotation.ExcelColumn;
 @VersionAudit
 @ModifyAudit
 @JsonInclude(value = JsonInclude.Include.NON_NULL)
-//@ExcelSheet(en = "Invoice Header Information")
 @Table(name = "todo_invoice_apply_header")
 public class InvoiceApplyHeader extends AuditDomain implements Cacheable, Serializable {
     private static final long serialVersionUID = -45223201537570491L;

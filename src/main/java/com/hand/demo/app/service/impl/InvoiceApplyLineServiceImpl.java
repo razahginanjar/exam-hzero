@@ -161,5 +161,10 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     public List<InvoiceApplyLine> selectAll() {
         return invoiceApplyLineRepository.selectAll();
     }
+
+    @Override
+    public List<InvoiceApplyLine> exportData(InvoiceApplyLine invoiceApplyLine) {
+        return invoiceApplyLineRepository.selectList(invoiceApplyLine);
+    }
 }
 

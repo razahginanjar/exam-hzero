@@ -1,6 +1,8 @@
 package com.hand.demo.api.controller.v1;
 
+import com.hand.demo.api.dto.InvApplyHeaderDTO;
 import com.hand.demo.config.SwaggerTags;
+import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.mybatis.pagehelper.annotation.SortDefault;
@@ -9,8 +11,12 @@ import io.choerodon.mybatis.pagehelper.domain.Sort;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
+import org.hzero.core.base.BaseConstants;
 import org.hzero.core.base.BaseController;
 import org.hzero.core.util.Results;
+import org.hzero.export.annotation.ExcelExport;
+import org.hzero.export.vo.ExportParam;
 import org.hzero.mybatis.helper.SecurityTokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +26,7 @@ import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -88,5 +95,23 @@ public class InvoiceApplyLineController extends BaseController {
         return Results.success();
     }
 
+
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "分页查询用户")
+    @GetMapping(
+            path = "/export"
+    )
+    @ExcelExport(value = InvoiceApplyLine.class)
+    @ProcessLovValue(
+            targetField = BaseConstants.FIELD_BODY
+    )
+    public ResponseEntity<List<InvoiceApplyLine>> export(
+            InvoiceApplyLine invoiceApplyLine,
+            ExportParam param,
+            HttpServletResponse response,
+            @PathVariable Long organizationId) {
+
+        return Results.success(invoiceApplyLineService.exportData(invoiceApplyLine));
+    }
 }
 
