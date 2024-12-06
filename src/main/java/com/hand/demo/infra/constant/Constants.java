@@ -25,6 +25,7 @@ public class Constants {
     public static final String PRODUCER_KEY_HEADER = "invoiceInfo_47837";
     public static final String MESSAGE_ERROR_DATA_NULL = "Data cannot be null or empty";
     public static final String MESSAGE_ERROR_MISSING_TENANT_OR_EMPLOYEE = "Missing required parameters: tenantId or employeeId";
+    public static final String JOB_HANDLER = "hexam-47837";
     private Constants() {}
 
 }

@@ -1,6 +1,6 @@
 package com.hand.demo.app.service.impl;
 
-import com.hand.demo.app.service.InvoiceApplyHeaderService;
+
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import com.hand.demo.infra.constant.Constants;
@@ -16,7 +16,6 @@ import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Invoice Apply Line Table(InvoiceApplyLine)应用服务

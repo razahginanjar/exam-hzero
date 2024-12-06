@@ -6,23 +6,20 @@ import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import com.hand.demo.infra.constant.Constants;
 import io.choerodon.core.exception.CommonException;
-import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.hzero.boot.scheduler.infra.annotation.JobHandler;
 import org.hzero.boot.scheduler.infra.enums.ReturnT;
 import org.hzero.boot.scheduler.infra.handler.IJobHandler;
 import org.hzero.boot.scheduler.infra.tool.SchedulerTool;
-import org.hzero.core.redis.RedisHelper;
 import org.hzero.core.redis.RedisQueueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-@JobHandler(value = "hexam-47837")
+@JobHandler(value = Constants.JOB_HANDLER)
 @Slf4j
 public class JobHandlerApp implements IJobHandler{
     @Autowired

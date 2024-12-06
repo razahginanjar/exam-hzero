@@ -1,24 +1,20 @@
 package com.hand.demo.infra.listener;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.app.service.InvoiceInfoQueueService;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.entity.InvoiceInfoQueue;
-import com.hand.demo.domain.repository.InvoiceInfoQueueRepository;
 import com.hand.demo.infra.constant.Constants;
 import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.hzero.core.redis.RedisQueueHelper;
 import org.hzero.core.redis.handler.IBatchQueueHandler;
 import org.hzero.core.redis.handler.QueueHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
