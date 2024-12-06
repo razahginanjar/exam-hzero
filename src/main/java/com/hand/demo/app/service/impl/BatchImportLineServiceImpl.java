@@ -5,6 +5,7 @@ import com.hand.demo.app.service.InvoiceApplyLineService;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import com.hand.demo.infra.constant.Constants;
+import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.hzero.boot.imported.app.service.BatchImportHandler;
 import org.hzero.boot.imported.infra.validator.annotation.ImportService;
@@ -45,7 +46,9 @@ public class BatchImportLineServiceImpl extends BatchImportHandler {
                     InvoiceApplyLine line
                             = invoiceApplyLineRepository.selectByPrimary(invoiceApplyLine.getApplyLineId());
                     invoiceApplyLine.setObjectVersionNumber(line.getObjectVersionNumber());
+
                 }
+                invoiceApplyLine.setTenantId(DetailsHelper.getUserDetails().getTenantId());
                 lineList.add(invoiceApplyLine);
             } catch (IOException e) {
                 log.error("Failed to parse data: {}, error: {}", datum, e.getMessage(), e);

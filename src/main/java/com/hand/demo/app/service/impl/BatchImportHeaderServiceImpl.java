@@ -16,8 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @ImportService(templateCode = Constants.TEMPLATE_IMPORT_CODE,
         sheetName = Constants.SHEET_HEADER_NAME)
@@ -61,8 +59,9 @@ public class BatchImportHeaderServiceImpl extends BatchImportHandler {
                     // Populate fields for updating the header
                     invoiceApplyHeader.setObjectVersionNumber(existingHeader.getObjectVersionNumber());
                     invoiceApplyHeader.setApplyHeaderId(existingHeader.getApplyHeaderId());
-                }
 
+                }
+                invoiceApplyHeader.setTenantId(DetailsHelper.getUserDetails().getTenantId());
                 listHeaders.add(invoiceApplyHeader);
 
             } catch (IOException e) {
