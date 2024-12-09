@@ -75,6 +75,12 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     @Override
     public void saveData(List<InvApplyHeaderDTO> invoiceApplyHeaders) {
         validateLovData(invoiceApplyHeaders);
+        for (InvApplyHeaderDTO invoiceApplyHeader : invoiceApplyHeaders) {
+            if(Objects.isNull(invoiceApplyHeader.getTenantId()))
+            {
+                invoiceApplyHeader.setTenantId(0L);
+            }
+        }
 
         List<InvoiceApplyHeader> insertList = invoiceApplyHeaders.stream()
                 .filter(header -> header.getApplyHeaderId() == null && header.getApplyHeaderNumber() == null)

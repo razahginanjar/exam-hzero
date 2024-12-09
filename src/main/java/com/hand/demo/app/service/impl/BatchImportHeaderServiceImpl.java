@@ -61,7 +61,6 @@ public class BatchImportHeaderServiceImpl extends BatchImportHandler {
                     invoiceApplyHeader.setApplyHeaderId(existingHeader.getApplyHeaderId());
 
                 }
-                invoiceApplyHeader.setTenantId(DetailsHelper.getUserDetails().getTenantId());
                 listHeaders.add(invoiceApplyHeader);
 
             } catch (IOException e) {
