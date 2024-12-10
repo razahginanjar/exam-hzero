@@ -50,7 +50,7 @@ public class InvoiceApplyHeaderController extends BaseController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @GetMapping
     public ResponseEntity<Page<InvApplyHeaderDTO>> list(
-            InvoiceApplyHeader invoiceApplyHeader,
+            InvApplyHeaderDTO invoiceApplyHeader,
             @PathVariable Long organizationId,
             @ApiIgnore @SortDefault(value = InvoiceApplyHeader.FIELD_APPLY_HEADER_ID,
             direction = Sort.Direction.DESC) PageRequest pageRequest) {
@@ -67,27 +67,29 @@ public class InvoiceApplyHeaderController extends BaseController {
     public ResponseEntity<InvApplyHeaderDTO> detail(
             @PathVariable Long applyHeaderId,
             @PathVariable Long organizationId) {
-        InvApplyHeaderDTO invApplyHeaderDTO = invoiceApplyHeaderService.selectDetail(applyHeaderId, organizationId);
+        InvApplyHeaderDTO invApplyHeaderDTO =
+                invoiceApplyHeaderService.selectDetail(applyHeaderId, organizationId);
         return Results.success(invApplyHeaderDTO);
     }
 
     @ApiOperation(value = "创建或更新Invoice Apply Header Table")
     @Permission(level = ResourceLevel.ORGANIZATION)
+    //@ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
     @PostMapping
     public ResponseEntity<List<InvApplyHeaderDTO>> save(
             @PathVariable Long organizationId,
-            @RequestBody List<InvApplyHeaderDTO> invoiceApplyHeaders) {
-        validObject(invoiceApplyHeaders);
-        SecurityTokenHelper.validTokenIgnoreInsert(invoiceApplyHeaders);
-        invoiceApplyHeaders.forEach(item -> item.setTenantId(organizationId));
-        invoiceApplyHeaderService.saveData(invoiceApplyHeaders);
-        return Results.success(invoiceApplyHeaders);
+            @RequestBody List<InvApplyHeaderDTO> invApplyHeaderDTOS) {
+        validObject(invApplyHeaderDTOS);
+        SecurityTokenHelper.validTokenIgnoreInsert(invApplyHeaderDTOS);
+        invApplyHeaderDTOS.forEach(item -> item.setTenantId(organizationId));
+        invoiceApplyHeaderService.saveData(invApplyHeaderDTOS);
+        return Results.success(invApplyHeaderDTOS);
     }
 
     @ApiOperation(value = "删除Invoice Apply Header Table")
     @Permission(level = ResourceLevel.ORGANIZATION)
     @DeleteMapping
-    public ResponseEntity<?> remove(@RequestBody List<InvoiceApplyHeader>
+    public ResponseEntity<?> remove(@RequestBody List<InvApplyHeaderDTO>
                                                 invoiceApplyHeaders,
                                     @PathVariable Long organizationId) {
         SecurityTokenHelper.validToken(invoiceApplyHeaders);
@@ -108,12 +110,12 @@ public class InvoiceApplyHeaderController extends BaseController {
             targetField = BaseConstants.FIELD_BODY
     )
     public ResponseEntity<List<InvApplyHeaderDTO>> export(
-            InvoiceApplyHeader invoiceApplyHeader,
+            InvApplyHeaderDTO invApplyHeaderDTO,
             ExportParam param,
             HttpServletResponse response,
             @PathVariable Long organizationId) {
 
-        return Results.success(invoiceApplyHeaderService.exportData(invoiceApplyHeader));
+        return Results.success(invoiceApplyHeaderService.exportData(invApplyHeaderDTO));
     }
 }
 

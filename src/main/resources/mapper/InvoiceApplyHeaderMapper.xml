@@ -37,8 +37,8 @@
             tiah.creation_date,         tiah.created_by,         tiah.last_updated_by,         tiah.last_update_date,         tiah.object_version_number    </sql>
 
     <select id = "selectList"
-            resultType = "com.hand.demo.domain.entity.InvoiceApplyHeader"
-    parameterType="com.hand.demo.domain.entity.InvoiceApplyHeader">
+            resultType = "com.hand.demo.api.dto.InvApplyHeaderDTO"
+    parameterType="com.hand.demo.api.dto.InvApplyHeaderDTO">
         select
         <include refid = "BaseSql"/>
         from todo_invoice_apply_header tiah

@@ -21,7 +21,7 @@ public class Constants {
     public static final String SHEET_LINE_NAME = "Invoice Line";
     public static final String MESSAGE_ERROR_INVALID_LOV = "hexam-47837.lov_value_doesnt_match";
     public static final String CACHE_KEY_PREFIX_DELETE_HEADER = "hexam-47837:invoice-header:deleted";
-    public static final String CACHE_KEY_PREFIX = "hexam-47837:invoice-header";
+    public static final String CACHE_KEY_PREFIX = "hexam-47837:inv";
     public static final String PRODUCER_KEY_HEADER = "invoiceInfo_47837";
     public static final String MESSAGE_ERROR_DATA_NULL = "Data cannot be null or empty";
     public static final String MESSAGE_ERROR_MISSING_TENANT_OR_EMPLOYEE = "Missing required parameters: tenantId or employeeId";

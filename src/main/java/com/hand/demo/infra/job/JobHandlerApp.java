@@ -2,6 +2,7 @@ package com.hand.demo.infra.job;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hand.demo.api.dto.InvApplyHeaderDTO;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
 import com.hand.demo.infra.constant.Constants;
@@ -45,14 +46,15 @@ public class JobHandlerApp implements IJobHandler{
             }
 
             // Query database for invoice headers
-            InvoiceApplyHeader query = new InvoiceApplyHeader();
+            InvApplyHeaderDTO query = new InvApplyHeaderDTO();
             query.setTenantId(tenantId);
             query.setDelFlag(1);
             query.setInvoiceColor("R");
             query.setApplyStatus("F");
             query.setInvoiceType("E");
 
-            List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderRepository.selectList(query);
+            List<InvApplyHeaderDTO> invoiceApplyHeaders =
+                    invoiceApplyHeaderRepository.selectList(query);
 
             // Exit if no data
             if (invoiceApplyHeaders == null || invoiceApplyHeaders.isEmpty()) {

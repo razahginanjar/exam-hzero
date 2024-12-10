@@ -22,7 +22,7 @@ public interface InvoiceApplyHeaderService {
      * @param invoiceApplyHeaders 查询条件
      * @return 返回值
      */
-    Page<InvApplyHeaderDTO> selectList(PageRequest pageRequest, InvoiceApplyHeader invoiceApplyHeaders);
+    Page<InvApplyHeaderDTO> selectList(PageRequest pageRequest, InvApplyHeaderDTO invoiceApplyHeaders);
 
     /**
      * 保存数据
@@ -31,10 +31,10 @@ public interface InvoiceApplyHeaderService {
      */
     void saveData(List<InvApplyHeaderDTO> invoiceApplyHeaders);
 
-    void delete(List<InvoiceApplyHeader> invoiceApplyHeaders);
+    void delete(List<InvApplyHeaderDTO> invoiceApplyHeaders);
     InvoiceApplyHeader selectOne(Long id);
     InvApplyHeaderDTO selectDetail(Long invHeaderId, Long tenantId);
     InvoiceApplyHeader selectDetailSelective(InvoiceApplyHeader invoiceApplyHeader);
-    List<InvApplyHeaderDTO> exportData(InvoiceApplyHeader invoiceApplyHeader);
+    List<InvApplyHeaderDTO> exportData(InvApplyHeaderDTO invoiceApplyHeader);
 }
 

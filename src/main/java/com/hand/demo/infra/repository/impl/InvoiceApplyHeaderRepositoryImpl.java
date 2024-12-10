@@ -1,5 +1,6 @@
 package com.hand.demo.infra.repository.impl;
 
+import com.hand.demo.api.dto.InvApplyHeaderDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
 import org.springframework.stereotype.Component;
@@ -22,20 +23,26 @@ public class InvoiceApplyHeaderRepositoryImpl extends BaseRepositoryImpl<Invoice
     private InvoiceApplyHeaderMapper invoiceApplyHeaderMapper;
 
     @Override
-    public List<InvoiceApplyHeader> selectList(InvoiceApplyHeader invoiceApplyHeader) {
+    public List<InvApplyHeaderDTO> selectList(InvApplyHeaderDTO invoiceApplyHeader) {
         return invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
     }
 
     @Override
-    public InvoiceApplyHeader selectByPrimary(Long applyHeaderId) {
-        InvoiceApplyHeader invoiceApplyHeader = new InvoiceApplyHeader();
+    public InvApplyHeaderDTO selectByPrimary(Long applyHeaderId) {
+        InvApplyHeaderDTO invoiceApplyHeader = new InvApplyHeaderDTO();
         invoiceApplyHeader.setApplyHeaderId(applyHeaderId);
-        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
+        List<InvApplyHeaderDTO> invoiceApplyHeaders =
+                invoiceApplyHeaderMapper.selectList(invoiceApplyHeader);
         if (invoiceApplyHeaders.size() == 0) {
             return null;
         }
         return invoiceApplyHeaders.get(0);
     }
 
+//    @Override
+//    public List<InvApplyHeaderDTO> batchUpdateByPrimaryKeySelective(List<InvApplyHeaderDTO> list) {
+//        this.batchDml
+//        return super.batchUpdateByPrimaryKeySelective(list);
+//    }
 }
 

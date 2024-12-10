@@ -8,6 +8,7 @@ import com.hand.demo.app.service.InvoiceInfoQueueService;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvoiceInfoQueue;
 import com.hand.demo.domain.repository.InvoiceInfoQueueRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ public class InvoiceInfoQueueServiceImpl implements InvoiceInfoQueueService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void saveData(List<InvoiceInfoQueue> invoiceInfoQueues) {
         List<InvoiceInfoQueue> insertList = invoiceInfoQueues.stream().filter(line -> line.getId() == null).collect(Collectors.toList());
         List<InvoiceInfoQueue> updateList = invoiceInfoQueues.stream().filter(line -> line.getId() != null).collect(Collectors.toList());

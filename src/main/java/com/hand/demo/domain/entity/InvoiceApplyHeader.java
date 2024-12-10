@@ -78,7 +78,7 @@ public class InvoiceApplyHeader extends AuditDomain implements Cacheable, Serial
     @ApiModelProperty("Primary Key")
     @Id
     @GeneratedValue
-    @ExcelColumn(en = "Apply Header Id")
+    //@ExcelColumn(en = "Apply Header Id")
     private Long applyHeaderId;
 
     @ApiModelProperty(value = "Header Number", required = true)
