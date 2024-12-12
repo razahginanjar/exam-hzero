@@ -29,4 +29,6 @@ public class InvApplyHeaderDTO extends InvoiceApplyHeader {
     @ExcelColumn(promptCode = "children",
             promptKey = "children", child = true)
     private List<InvoiceApplyLine> invoiceApplyLines;
+
+    private String realName;
 }

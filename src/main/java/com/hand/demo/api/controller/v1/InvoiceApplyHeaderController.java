@@ -106,9 +106,6 @@ public class InvoiceApplyHeaderController extends BaseController {
             path = "/export"
     )
     @ExcelExport(value = InvApplyHeaderDTO.class)
-    @ProcessLovValue(
-            targetField = BaseConstants.FIELD_BODY
-    )
     public ResponseEntity<List<InvApplyHeaderDTO>> export(
             InvApplyHeaderDTO invApplyHeaderDTO,
             ExportParam param,

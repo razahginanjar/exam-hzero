@@ -2,17 +2,23 @@ package com.hand.demo.app.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hand.demo.api.dto.FeignIamSelfDTO;
 import com.hand.demo.api.dto.InvApplyHeaderDTO;
 import com.hand.demo.app.service.InvoiceApplyLineService;
 import com.hand.demo.domain.entity.InvoiceApplyLine;
 import com.hand.demo.infra.constant.Constants;
+import com.hand.demo.infra.feign.IamFeign;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.domain.PageInfo;
 import io.choerodon.core.exception.CommonException;
+import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.mybatis.pagehelper.PageHelper;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import io.seata.common.util.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.hzero.boot.interfaces.infra.feign.HiamRemoteFeignClient;
+import org.hzero.boot.interfaces.sdk.dto.UserVO;
+import org.hzero.boot.message.feign.PlatformRemoteService;
 import org.hzero.boot.platform.code.builder.CodeRuleBuilder;
 import org.hzero.boot.platform.lov.adapter.LovAdapter;
 import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
@@ -24,6 +30,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.hand.demo.app.service.InvoiceApplyHeaderService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
 import com.hand.demo.domain.repository.InvoiceApplyHeaderRepository;
@@ -63,6 +70,12 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     @Autowired
     private InvoiceApplyLineService invoiceApplyLineService;
 
+    @Autowired
+    private HiamRemoteFeignClient hiamRemoteFeignClient;
+
+    @Autowired
+    private PlatformRemoteService platformRemoteService;
+
 
     @Override
     public Page<InvApplyHeaderDTO> selectList(PageRequest pageRequest,
@@ -77,12 +90,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
     @ProcessCacheValue
     public void saveData(List<InvApplyHeaderDTO> invoiceApplyHeaders) {
         validateLovData(invoiceApplyHeaders);
-        for (InvApplyHeaderDTO invoiceApplyHeader : invoiceApplyHeaders) {
-            if(Objects.isNull(invoiceApplyHeader.getTenantId()))
-            {
-                invoiceApplyHeader.setTenantId(BaseConstants.DEFAULT_TENANT_ID);
-            }
-        }
+//        UserVO userVO = hiamRemoteFeignClient.selectSelf();
 
         List<InvApplyHeaderDTO> insertList = invoiceApplyHeaders.stream()
                 .filter(header -> header.getApplyHeaderId() == null && header.getApplyHeaderNumber() == null)
@@ -96,40 +104,25 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         List<InvApplyHeaderDTO> headerDTOS = processUpdateHeaders(updateList);
         Map<String, InvApplyHeaderDTO> mapHeader = new HashMap<>();
 
-        if(Objects.nonNull(headerDTOS1) && CollectionUtils.isNotEmpty(headerDTOS1))
-        {
-            for (InvApplyHeaderDTO invApplyHeaderDTO : headerDTOS1) {
-                mapHeader.put(invApplyHeaderDTO.getApplyHeaderNumber(), invApplyHeaderDTO);
-            }
-        }
-
-
-        if(Objects.nonNull(headerDTOS) && CollectionUtils.isNotEmpty(headerDTOS))
-        {
-            for (InvApplyHeaderDTO invApplyHeaderDTO : headerDTOS) {
-                mapHeader.put(invApplyHeaderDTO.getApplyHeaderNumber(), invApplyHeaderDTO);
-            }
-        }
-
-        for (InvApplyHeaderDTO invoiceApplyHeader : invoiceApplyHeaders) {
-            InvApplyHeaderDTO invApplyHeaderDTO = mapHeader.get(invoiceApplyHeader.getApplyHeaderNumber());
-            invoiceApplyHeader.setApplyHeaderId(invApplyHeaderDTO.getApplyHeaderId());
-        }
+//        if(CollectionUtils.isNotEmpty(headerDTOS1)){
+//            for (InvApplyHeaderDTO invApplyHeaderDTO : headerDTOS1) {
+//                mapHeader.put(invApplyHeaderDTO.getApplyHeaderNumber(), invApplyHeaderDTO);
+//            }
+//        }
+//
+//
+//        if(Objects.nonNull(headerDTOS) && CollectionUtils.isNotEmpty(headerDTOS)){
+//            for (InvApplyHeaderDTO invApplyHeaderDTO : headerDTOS) {
+//                mapHeader.put(invApplyHeaderDTO.getApplyHeaderNumber(), invApplyHeaderDTO);
+//            }
+//        }
+//
+//        for (InvApplyHeaderDTO invoiceApplyHeader : invoiceApplyHeaders) {
+//            InvApplyHeaderDTO invApplyHeaderDTO = mapHeader.get(invoiceApplyHeader.getApplyHeaderNumber());
+//            invoiceApplyHeader.setApplyHeaderId(invApplyHeaderDTO.getApplyHeaderId());
+//        }
 
         processInvoiceLines(invoiceApplyHeaders);
-        List<InvoiceApplyLine> invoiceApplyLines = invoiceApplyLineService.selectAll();
-
-        if(Objects.nonNull(headerDTOS) && CollectionUtils.isNotEmpty(headerDTOS))
-        {
-            Map<Long, List<InvoiceApplyLine>> lineMap = invoiceApplyLines.stream()
-                    .collect(Collectors.groupingBy(InvoiceApplyLine::getApplyHeaderId));
-            for (InvoiceApplyHeader invoiceApplyHeader : headerDTOS)
-            {
-                InvApplyHeaderDTO invApplyHeaderDTO = mapToInvApplyHeaderDTO(invoiceApplyHeader);
-                invApplyHeaderDTO.setInvoiceApplyLines(lineMap.get(invApplyHeaderDTO.getApplyHeaderId()));
-                cacheHeaderDetails(invApplyHeaderDTO.getApplyHeaderId(), invApplyHeaderDTO);
-            }
-        }
 
     }
 
@@ -187,6 +180,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         }
         List<InvoiceApplyLine> invoiceApplyLines =
                 invoiceApplyLineService.selectByInvoiceHeader(invHeaderId);
+        header.setRealName(DetailsHelper.getUserDetails().getRealName());
         header.setInvoiceApplyLines(invoiceApplyLines);
         cacheHeaderDetails(invHeaderId, header);
         return header;
@@ -299,7 +293,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
         headers.forEach(header -> {
             header.setApplyHeaderNumber(codeRuleBuilder.generateCode(Constants.CODE_RULE_HEADER, new HashMap<>()));
             header.setSubmitTime(Optional.ofNullable(header.getSubmitTime()).orElse(Date.from(Instant.now())));
-            cacheHeaderDetails(header.getApplyHeaderId(), header);
+//            cacheHeaderDetails(header.getApplyHeaderId(), header);
         });
 
         // Map DTOs to Entities
@@ -308,7 +302,7 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                 .collect(Collectors.toList());
 
         // Perform batch insert
-        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderRepository.batchInsertSelective(entities);
+        List<InvoiceApplyHeader> invoiceApplyHeaders = invoiceApplyHeaderRepository.batchInsertSelective(new ArrayList<>(headers));
         return invoiceApplyHeaders.stream().map(this::mapToInvApplyHeaderDTO).collect(Collectors.toList());
     }
 
@@ -374,8 +368,18 @@ public class InvoiceApplyHeaderServiceImpl implements InvoiceApplyHeaderService 
                 .map(this::mapToInvoiceApplyHeader) // Mapping method
                 .collect(Collectors.toList());
         // Perform the batch update
-        List<InvoiceApplyHeader> invoiceApplyHeaders1 = invoiceApplyHeaderRepository.batchUpdateByPrimaryKeySelective(entities);
-        return invoiceApplyHeaders1.stream().map(this::mapToInvApplyHeaderDTO).collect(Collectors.toList());
+        List<InvoiceApplyHeader> headerDTOS = invoiceApplyHeaderRepository.batchUpdateByPrimaryKeySelective(entities);
+        if(Objects.nonNull(headerDTOS) && CollectionUtils.isNotEmpty(headerDTOS))
+        {
+            List<String> keys = new ArrayList<>();
+            for (InvoiceApplyHeader invoiceApplyHeader : headerDTOS)
+            {
+                keys.add(Constants.CACHE_KEY_PREFIX+":"+invoiceApplyHeader.getApplyHeaderNumber());
+            }
+            redisHelper.delKeys(keys);
+        }
+
+        return headerDTOS.stream().map(this::mapToInvApplyHeaderDTO).collect(Collectors.toList());
     }
 
 }

@@ -33,7 +33,8 @@ public class MessageListener implements IBatchQueueHandler {
         try {
             Map<String, Object> map1 = objectMapper.readValue(messages.get(0), Map.class);
             CustomUserDetails customUserDetails =
-                    objectMapper.readValue(map1.get("userDetails").toString(), CustomUserDetails.class);
+                    objectMapper.readValue(map1.get("userDetails")
+                            .toString(), CustomUserDetails.class);
             DetailsHelper.setCustomUserDetails(customUserDetails);
         }catch (Exception e){
             log.error(e.getMessage());
@@ -42,10 +43,10 @@ public class MessageListener implements IBatchQueueHandler {
         for (String message : messages) {
             try {
                 Map<String, Object> map = objectMapper.readValue(message, Map.class);
-                if(map != null)
-                {
+                if(map != null){
                     invoiceInfoQueue.setEmployeeId(map.get("employeeId").toString());
-                    invoiceInfoQueue.setTenantId(Long.valueOf(map.get(InvoiceApplyHeader.FIELD_TENANT_ID).toString()));
+                    invoiceInfoQueue.setTenantId(Long.valueOf(map
+                            .get(InvoiceApplyHeader.FIELD_TENANT_ID).toString()));
                 }
                 invoiceInfoQueue.setContent(message);
             } catch (JsonProcessingException e) {
