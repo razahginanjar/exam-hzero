@@ -49,65 +49,31 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveData(List<InvoiceApplyLine> invoiceApplyLines) {
-        // Retrieve all necessary headers and lines once at the beginning
-        Map<Long, InvoiceApplyHeader> headerCache = new HashMap<>();
-        Map<Long, InvoiceApplyLine> lineMap = invoiceApplyLineRepository.selectAll().stream()
-                .collect(Collectors.toMap(InvoiceApplyLine::getApplyLineId, line -> line));
-
-        List<InvApplyHeaderDTO> headerDTOS = invoiceApplyHeaderRepository.selectList(new InvApplyHeaderDTO());
-        Map<Long, InvApplyHeaderDTO> headerMap = headerDTOS.stream()
-                .collect(Collectors.toMap(InvApplyHeaderDTO::getApplyHeaderId, header -> header));
-
-        // Prepare lists for insert and update
-        List<InvoiceApplyLine> insertList = new ArrayList<>();
-        List<InvoiceApplyLine> updateList = new ArrayList<>();
-
-        // Process each line
-        for (InvoiceApplyLine line : invoiceApplyLines) {
-            calculateLineAmounts(line);
-
+        //calculate amounts and validate
+        for (InvoiceApplyLine invoiceApplyLine : invoiceApplyLines) {
+            calculateLineAmounts(invoiceApplyLine);
             // Ensure the header exists for the line
-            if (line.getApplyHeaderId() == null) {
+            if (invoiceApplyLine.getApplyHeaderId() == null) {
                 throw new CommonException(Constants.MESSAGE_ERROR_HEADER_ID_CANNOT_BE_NULL);
             }
-
-            InvApplyHeaderDTO headerDTO = headerMap.get(line.getApplyHeaderId());
-            if (headerDTO == null) {
-                throw new CommonException(Constants.MESSAGE_ERROR_NOT_FOUND);
-            }
-
-            // Use cache to retrieve or set the header
-            InvoiceApplyHeader header = headerCache.computeIfAbsent(line.getApplyHeaderId(), id -> headerDTO);
-
-            if (line.getApplyLineId() == null) {
-                // New line: Insert operation
-                updateHeaderAmounts(header, line.getTotalAmount(), line.getTaxAmount(), line.getExcludeTaxAmount());
-                insertList.add(line);
-            } else {
-                // Existing line: Update operation
-                InvoiceApplyLine existingLine = lineMap.get(line.getApplyLineId());
-                if (existingLine == null) {
-                    throw new CommonException(Constants.MESSAGE_ERROR_INV_LINE_NOT_FOUND);
-                }
-
-                updateHeaderAmounts(header,
-                        line.getTotalAmount().subtract(existingLine.getTotalAmount()),
-                        line.getTaxAmount().subtract(existingLine.getTaxAmount()),
-                        line.getExcludeTaxAmount().subtract(existingLine.getExcludeTaxAmount()));
-                updateList.add(line);
-            }
-
-            // Ensure header is updated in the cache
-            headerCache.put(line.getApplyHeaderId(), header);
         }
 
-        // Persist changes in bulk
-        if (!insertList.isEmpty()) {
-            invoiceApplyLineRepository.batchInsertSelective(insertList);
-        }
-        if (!updateList.isEmpty()) {
-            invoiceApplyLineRepository.batchUpdateByPrimaryKeySelective(updateList);
-        }
+        // Retrieve all necessary headers and lines once at the beginning
+        Map<Long, InvoiceApplyHeader> headerCache = new HashMap<>();
+
+        Map<Long, InvoiceApplyHeader> headerMap = getHeadersByLines(invoiceApplyLines);
+
+
+        // Prepare lists for insert and update
+        List<InvoiceApplyLine> insertList = invoiceApplyLines.stream()
+                .filter(line -> line.getApplyLineId() == null)
+                .collect(Collectors.toList());
+        List<InvoiceApplyLine> updateList = invoiceApplyLines.stream()
+                .filter(line -> line.getApplyLineId() != null)
+                .collect(Collectors.toList());
+
+        updateData(updateList, headerMap, headerCache);
+        insertData(insertList, headerMap, headerCache);
 
         // Batch update headers at the end
         List<InvoiceApplyHeader> headerUpdates = new ArrayList<>(headerCache.values());
@@ -122,6 +88,119 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
         );
         redisHelper.delKeys(keys);
     }
+
+    private void insertData(List<InvoiceApplyLine> requests,
+                            Map<Long, InvoiceApplyHeader> headerMap,
+                            Map<Long, InvoiceApplyHeader> headerCache)
+    {
+        if (requests.isEmpty()) {
+            return;
+        }
+        for (InvoiceApplyLine line : requests) {
+            InvoiceApplyHeader headerDTO = headerMap.get(line.getApplyHeaderId());
+            if (headerDTO == null) {
+                throw new CommonException(Constants.MESSAGE_ERROR_NOT_FOUND);
+            }
+
+            // Use cache to retrieve or set the header
+            InvoiceApplyHeader header = headerCache.computeIfAbsent(line.getApplyHeaderId(),
+                    id -> headerDTO);
+            // New line: Insert operation
+            updateHeaderAmounts(header, line.getTotalAmount(), line.getTaxAmount(), line.getExcludeTaxAmount());
+            // Ensure header is updated in the cache
+            headerCache.put(line.getApplyHeaderId(), header);
+        }
+        invoiceApplyLineRepository.batchInsertSelective(requests);
+    }
+
+
+    //update line data
+    private void updateData(List<InvoiceApplyLine> requests,
+                                              Map<Long, InvoiceApplyHeader> headerMap,
+                                              Map<Long, InvoiceApplyHeader> headerCache)
+    {
+        if (requests.isEmpty()) {
+            return;
+        }
+        Set<String> headerIds = requests.stream()
+                .map(header -> header.getApplyLineId().toString())
+                .collect(Collectors.toSet());
+        Map<Long, InvoiceApplyLine> lineMap = invoiceApplyLineRepository
+                .selectByIds(String.join(",", headerIds)).stream()
+                .collect(Collectors.toMap(InvoiceApplyLine::getApplyLineId, line -> line));
+        for (InvoiceApplyLine line : requests) {
+
+            // Ensure the header exists for the line
+            if (line.getApplyHeaderId() == null) {
+                throw new CommonException(Constants.MESSAGE_ERROR_HEADER_ID_CANNOT_BE_NULL);
+            }
+
+            InvoiceApplyHeader headerDTO = headerMap.get(line.getApplyHeaderId());
+            if (headerDTO == null) {
+                throw new CommonException(Constants.MESSAGE_ERROR_NOT_FOUND);
+            }
+
+            // Use cache to retrieve or set the header
+            InvoiceApplyHeader header = headerCache.computeIfAbsent(line.getApplyHeaderId(),
+                    id -> headerDTO);
+
+                // Existing line: Update operation
+            InvoiceApplyLine existingLine = lineMap.get(line.getApplyLineId());
+            if (existingLine == null) {
+                throw new CommonException(Constants.MESSAGE_ERROR_INV_LINE_NOT_FOUND);
+            }
+
+            updateHeaderAmounts(header,
+                        line.getTotalAmount().subtract(existingLine.getTotalAmount()),
+                        line.getTaxAmount().subtract(existingLine.getTaxAmount()),
+                        line.getExcludeTaxAmount().subtract(existingLine.getExcludeTaxAmount()));
+            // Ensure header is updated in the cache
+            headerCache.put(line.getApplyHeaderId(), header);
+
+            if(line.getQuantity() == null)
+            {
+                line.setQuantity(existingLine.getQuantity());
+            }
+            if(line.getTaxRate() == null)
+            {
+                line.setTaxRate(existingLine.getTaxRate());
+            }
+            if(line.getContentName() == null)
+            {
+                line.setContentName(existingLine.getContentName());
+            }
+            if(line.getInvoiceName() == null)
+            {
+                line.setInvoiceName(existingLine.getInvoiceName());
+            }
+            if(line.getUnitPrice() == null)
+            {
+                line.setUnitPrice(existingLine.getUnitPrice());
+            }
+            if(line.getTaxClassificationNumber() == null)
+            {
+                line.setTaxClassificationNumber(existingLine.getTaxClassificationNumber());
+            }
+            if(line.getRemark() == null)
+            {
+                line.setRemark(existingLine.getRemark());
+            }
+
+        }
+
+        invoiceApplyLineRepository.batchUpdateOptional(
+                requests,
+                InvoiceApplyLine.FIELD_INVOICE_NAME,
+                InvoiceApplyLine.FIELD_CONTENT_NAME,
+                InvoiceApplyLine.FIELD_QUANTITY,
+                InvoiceApplyLine.FIELD_REMARK,
+                InvoiceApplyLine.FIELD_TAX_CLASSIFICATION_NUMBER,
+                InvoiceApplyLine.FIELD_TAX_RATE,
+                InvoiceApplyLine.FIELD_UNIT_PRICE
+        );
+    }
+
+
 
     //calculate total, tax, exclude amount
     private void calculateLineAmounts(InvoiceApplyLine line) {
@@ -145,14 +224,15 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     @Transactional(rollbackFor = Exception.class)
     public void removeData(List<InvoiceApplyLine> invoiceApplyLines) {
         // Retrieve necessary headers and lines once
-        List<InvApplyHeaderDTO> headerDTOS = invoiceApplyHeaderRepository
-                .selectList(new InvApplyHeaderDTO());
-        Map<Long, InvApplyHeaderDTO> headerMap = headerDTOS.stream()
-                .collect(Collectors.toMap(InvApplyHeaderDTO::getApplyHeaderId, header -> header));
+        Map<Long, InvoiceApplyHeader> headerMap = getHeadersByLines(invoiceApplyLines);
 
-        List<InvoiceApplyLine> invoiceApplyLines1 = invoiceApplyLineRepository.selectAll();
-        Map<Long, InvoiceApplyLine> lineMap = invoiceApplyLines1.stream()
+        Set<String> headerIds = invoiceApplyLines.stream()
+                .map(header -> header.getApplyLineId().toString())
+                .collect(Collectors.toSet());
+        Map<Long, InvoiceApplyLine> lineMap = invoiceApplyLineRepository
+                .selectByIds(String.join(",", headerIds)).stream()
                 .collect(Collectors.toMap(InvoiceApplyLine::getApplyLineId, line -> line));
+
 
         // Process each line to update header amounts
         for (InvoiceApplyLine line : invoiceApplyLines) {
@@ -175,8 +255,10 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
         }
 
         // Batch delete lines and update headers
-        invoiceApplyLineRepository.batchDeleteByPrimaryKey(invoiceApplyLines);
-        invoiceApplyHeaderRepository.batchUpdateByPrimaryKeySelective(new ArrayList<>(headerMap.values()));
+        invoiceApplyLineRepository
+                .batchDeleteByPrimaryKey(invoiceApplyLines);
+        invoiceApplyHeaderRepository
+                .batchUpdateByPrimaryKeySelective(new ArrayList<>(headerMap.values()));
         List<String> keys = new ArrayList<>();
         headerMap.values().forEach(
                 invApplyHeaderDTO -> {
@@ -184,6 +266,19 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
                 }
         );
         redisHelper.delKeys(keys);
+    }
+
+    private Map<Long, InvoiceApplyHeader> getHeadersByLines(List<InvoiceApplyLine> invoiceApplyLines) {
+        Set<String> headerIds = invoiceApplyLines.stream()
+                .map(header -> header.getApplyHeaderId().toString())
+                .collect(Collectors.toSet());
+
+        List<InvoiceApplyHeader> invoiceApplyHeaders =
+                invoiceApplyHeaderRepository.selectByIds(String.join(",", headerIds));
+
+         return invoiceApplyHeaders.stream()
+                .collect(Collectors.toMap(InvoiceApplyHeader::getApplyHeaderId,
+                        header -> header));
     }
 
     @Override
@@ -210,6 +305,11 @@ public class InvoiceApplyLineServiceImpl implements InvoiceApplyLineService {
     @Transactional(readOnly = true)
     public List<InvoiceApplyLine> exportData(InvoiceApplyLine invoiceApplyLine) {
         return invoiceApplyLineRepository.selectList(invoiceApplyLine);
+    }
+
+    @Override
+    public List<InvoiceApplyLine> getFromHeaders(List<Long> headerIds) {
+        return invoiceApplyLineRepository.selectByHeaderIds(headerIds);
     }
 }
 

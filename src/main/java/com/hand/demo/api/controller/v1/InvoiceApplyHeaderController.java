@@ -1,6 +1,7 @@
 package com.hand.demo.api.controller.v1;
 
 import com.hand.demo.api.dto.InvApplyHeaderDTO;
+import com.hand.demo.api.dto.ReportExportDTO;
 import com.hand.demo.config.SwaggerTags;
 import io.choerodon.core.domain.Page;
 import io.choerodon.core.iam.ResourceLevel;
@@ -113,6 +114,20 @@ public class InvoiceApplyHeaderController extends BaseController {
             @PathVariable Long organizationId) {
 
         return Results.success(invoiceApplyHeaderService.exportData(invApplyHeaderDTO));
+    }
+
+
+    @ApiOperation(value = "Invoice Apply Header Table列表")
+    @ProcessLovValue(targetField = BaseConstants.FIELD_BODY)
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @GetMapping(
+            path = "/filter"
+    )
+    public ResponseEntity<ReportExportDTO> filterList(
+            @PathVariable Long organizationId,
+            ReportExportDTO reportExportDTO) {
+        ReportExportDTO reportExportDTO1 = invoiceApplyHeaderService.selectReport(organizationId, reportExportDTO);
+        return Results.success(reportExportDTO1);
     }
 }
 

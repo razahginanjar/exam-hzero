@@ -35,5 +35,6 @@ public interface InvoiceApplyLineService {
     List<InvoiceApplyLine> selectAll();
 
     List<InvoiceApplyLine> exportData(InvoiceApplyLine invoiceApplyLine);
+    List<InvoiceApplyLine> getFromHeaders(List<Long> headerIds);
 }
 

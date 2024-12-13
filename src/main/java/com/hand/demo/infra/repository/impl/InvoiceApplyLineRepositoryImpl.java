@@ -8,6 +8,7 @@ import com.hand.demo.domain.repository.InvoiceApplyLineRepository;
 import com.hand.demo.infra.mapper.InvoiceApplyLineMapper;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,6 +36,11 @@ public class InvoiceApplyLineRepositoryImpl extends BaseRepositoryImpl<InvoiceAp
             return null;
         }
         return invoiceApplyLines.get(0);
+    }
+
+    @Override
+    public List<InvoiceApplyLine> selectByHeaderIds(List<Long> headerIds) {
+        return invoiceApplyLineMapper.selectByHeaderIds(headerIds);
     }
 
 }

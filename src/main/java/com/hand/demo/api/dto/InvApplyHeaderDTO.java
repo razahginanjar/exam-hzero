@@ -31,4 +31,6 @@ public class InvApplyHeaderDTO extends InvoiceApplyHeader {
     private List<InvoiceApplyLine> invoiceApplyLines;
 
     private String realName;
+
+    private String invoiceNames;
 }

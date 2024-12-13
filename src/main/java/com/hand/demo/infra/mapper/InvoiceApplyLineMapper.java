@@ -19,5 +19,6 @@ public interface InvoiceApplyLineMapper extends BaseMapper<InvoiceApplyLine> {
      * @return 返回值
      */
     List<InvoiceApplyLine> selectList(InvoiceApplyLine invoiceApplyLine);
+    List<InvoiceApplyLine> selectByHeaderIds(List<Long> headerIds);
 }
 

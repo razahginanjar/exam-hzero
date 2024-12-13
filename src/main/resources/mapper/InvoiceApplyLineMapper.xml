@@ -85,5 +85,18 @@
             </if>
         </where>
     </select>
+
+    <select id="selectByHeaderIds" resultType="com.hand.demo.domain.entity.InvoiceApplyLine"
+            parameterType="list">
+        select
+        <include refid = "BaseSql"/>
+        from todo_invoice_apply_line tial
+        <where>
+            tial.apply_header_id in
+            <foreach collection="list" item="applyHeaderId" open="(" separator="," close=")">
+                #{applyHeaderId}
+            </foreach>
+        </where>
+    </select>
 </mapper>
 

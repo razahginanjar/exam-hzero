@@ -1,6 +1,7 @@
 package com.hand.demo.app.service;
 
 import com.hand.demo.api.dto.InvApplyHeaderDTO;
+import com.hand.demo.api.dto.ReportExportDTO;
 import io.choerodon.core.domain.Page;
 import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 import com.hand.demo.domain.entity.InvoiceApplyHeader;
@@ -36,5 +37,7 @@ public interface InvoiceApplyHeaderService {
     InvApplyHeaderDTO selectDetail(Long invHeaderId, Long tenantId);
     InvoiceApplyHeader selectDetailSelective(InvoiceApplyHeader invoiceApplyHeader);
     List<InvApplyHeaderDTO> exportData(InvApplyHeaderDTO invoiceApplyHeader);
+    List<InvoiceApplyHeader> selectByHeaderIds(List<Long> headerIds);
+    ReportExportDTO selectReport(Long organizationId, ReportExportDTO reportExportDTO);
 }
 
